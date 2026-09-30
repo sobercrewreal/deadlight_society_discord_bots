@@ -6,6 +6,6 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY shared ./shared
-COPY bots/ghostwrite/main.py ./main.py
+COPY bots/ghostwrite/ ./
 
 CMD ["python", "main.py"]
