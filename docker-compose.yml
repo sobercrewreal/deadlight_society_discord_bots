@@ -1,0 +1,11 @@
+services:
+  ghostwrite:
+    build:
+      context: .
+      dockerfile: bots/ghostwrite/Dockerfile
+    container_name: ghostwrite-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./bots/ghostwrite/data:/app/data
