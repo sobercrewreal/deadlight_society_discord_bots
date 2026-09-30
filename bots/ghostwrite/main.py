@@ -18,6 +18,27 @@ intents = discord.Intents.default()
 DB_PATH = "/app/data/ghostwrite.db"
 CHANNEL_ID = int(os.environ["GHOSTWRITE_CHANNEL_ID"])
 
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS stories (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    guild_id TEXT NOT NULL,
+    channel_id TEXT NOT NULL,
+    message_id TEXT NOT NULL,
+    posted_at TEXT NOT NULL,
+    reveal_at TEXT NOT NULL,
+    is_real INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    revealed INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS votes (
+    story_id INTEGER NOT NULL,
+    user_id TEXT NOT NULL,
+    guess INTEGER NOT NULL,
+    PRIMARY KEY (story_id, user_id)
+);
+"""
+
 
 class GhostWriteBot(discord.Client):
     def __init__(self):
@@ -28,7 +49,7 @@ class GhostWriteBot(discord.Client):
         self.reveal_loop = None
 
     async def setup_hook(self):
-        self.db = await db_module.connect(DB_PATH)
+        self.db = await db_module.connect(DB_PATH, SCHEMA)
         verdict.register(self.tree, self.db)
         leaderboard.register(self.tree, self.db)
         self.post_loop, self.reveal_loop = daily_post.build_loops(self, self.db, CHANNEL_ID)

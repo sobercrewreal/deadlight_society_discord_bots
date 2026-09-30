@@ -9,3 +9,14 @@ services:
       - .env
     volumes:
       - ./bots/ghostwrite/data:/app/data
+
+  haunt:
+    build:
+      context: .
+      dockerfile: bots/haunt/Dockerfile
+    container_name: haunt-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./bots/haunt/data:/app/data
