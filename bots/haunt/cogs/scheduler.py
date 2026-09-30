@@ -1,4 +1,5 @@
 import logging
+import os
 import random
 
 import discord
@@ -10,6 +11,12 @@ log = logging.getLogger("haunt.scheduler")
 
 TICK_MINUTES = 5
 FIRE_PROBABILITY = 0.15
+
+# FlaviBot joins whatever VC its user requested music in, rather than living in one
+# fixed channel, so it can't be excluded by channel id -- instead, any VC FlaviBot is
+# currently sitting in gets skipped for that tick. Default is FlaviBot's Discord app id
+# (confirmed on Deadlight Society); override via env if a server uses a different bot.
+MUSIC_BOT_ID = int(os.environ.get("HAUNT_MUSIC_BOT_ID", "684773505157431347"))
 
 
 def build_loop(client: discord.Client, pacer, haunted_vc_id: int, excluded_vc_ids: set[int]):
@@ -23,6 +30,7 @@ def build_loop(client: discord.Client, pacer, haunted_vc_id: int, excluded_vc_id
                 member
                 for vc in guild.voice_channels
                 if vc.id not in excluded_vc_ids
+                and not any(m.id == MUSIC_BOT_ID for m in vc.members)
                 for member in vc.members
                 if not member.bot
             ]
