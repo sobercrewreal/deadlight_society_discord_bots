@@ -20,3 +20,14 @@ services:
       - .env
     volumes:
       - ./bots/haunt/data:/app/data
+
+  evp:
+    build:
+      context: .
+      dockerfile: bots/evp/Dockerfile
+    container_name: evp-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./bots/evp/data:/app/data
