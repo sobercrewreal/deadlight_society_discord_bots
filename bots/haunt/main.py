@@ -50,6 +50,7 @@ class HauntBot(discord.Client):
 
         teleport.register(self, self.pacer, EXCLUDED_VC_IDS, DESTINATION_CHANNEL_ID)
         vc_yank.register_status_command(self.tree, self.pacer)
+        vc_yank.register_test_command(self.tree, self, HAUNTED_VC_ID)
 
         self.tick_loop = scheduler.build_loop(
             self, self.pacer, HAUNTED_VC_ID, EXCLUDED_VC_IDS | {HAUNTED_VC_ID}

@@ -85,3 +85,17 @@ def register_status_command(tree: app_commands.CommandTree, pacer):
         await interaction.response.send_message(
             f"**{count}** hauntings in the last 7 days — currently running **{tier}**."
         )
+
+
+def register_test_command(tree: app_commands.CommandTree, client: discord.Client, haunted_vc_id: int):
+    @tree.command(name="test", description="Trigger a haunt on yourself right now, to check the bot is working")
+    async def test(interaction: discord.Interaction):
+        member = interaction.user
+        if member.voice is None or member.voice.channel is None:
+            await interaction.response.send_message(
+                "You need to be in a voice channel to test this.", ephemeral=True
+            )
+            return
+        tier = random.choice(list(TIERS.keys()))
+        await interaction.response.send_message(f"Haunting you now (tier: {tier})...", ephemeral=True)
+        await yank(client, member, haunted_vc_id, tier)
