@@ -10,12 +10,20 @@ MESSAGE_HAUNT_CHANCE = 0.03
 RELAY_WEBHOOK_NAME = "Haunt Bot Relay"
 
 
-def register(client: discord.Client, pacer, excluded_channel_ids: set[int], destination_channel_id: int):
+def register(
+    client: discord.Client,
+    pacer,
+    excluded_channel_ids: set[int],
+    destination_channel_id: int,
+    excluded_member_ids: set[str],
+):
     @client.event
     async def on_message(message: discord.Message):
         if message.author.bot or message.guild is None:
             return
         if message.channel.id in excluded_channel_ids or message.channel.id == destination_channel_id:
+            return
+        if str(message.author.id) in excluded_member_ids:
             return
         if random.random() >= MESSAGE_HAUNT_CHANCE:
             return

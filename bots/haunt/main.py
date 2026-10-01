@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS haunts (
 DESTINATION_CHANNEL_ID = int(os.environ["HAUNT_DESTINATION_CHANNEL_ID"])
 HAUNTED_VC_ID = int(os.environ["HAUNT_VC_ID"])
 EXCLUDED_VC_IDS = {int(x) for x in os.environ.get("HAUNT_EXCLUDED_VC_IDS", "").split(",") if x}
+EXCLUDED_MEMBER_IDS = {x.strip() for x in os.environ.get("HAUNT_EXCLUDED_MEMBER_IDS", "").split(",") if x.strip()}
 COOLDOWN_MINUTES = int(os.environ.get("HAUNT_COOLDOWN_MINUTES", "27"))
 DAILY_CAP = int(os.environ.get("HAUNT_DAILY_CAP", "3"))
 
@@ -48,12 +49,22 @@ class HauntBot(discord.Client):
         self.db = await db_module.connect(DB_PATH, SCHEMA)
         self.pacer = HauntPacer(self.db, COOLDOWN_MINUTES, DAILY_CAP)
 
-        teleport.register(self, self.pacer, EXCLUDED_VC_IDS, DESTINATION_CHANNEL_ID)
+        teleport.register(
+            self, self.pacer, EXCLUDED_VC_IDS, DESTINATION_CHANNEL_ID, EXCLUDED_MEMBER_IDS
+        )
         vc_yank.register_status_command(self.tree, self.pacer)
         vc_yank.register_test_command(self.tree, self, HAUNTED_VC_ID)
+        vc_yank.register_haunt_command(
+            self.tree,
+            self,
+            self.pacer,
+            HAUNTED_VC_ID,
+            EXCLUDED_VC_IDS | {HAUNTED_VC_ID},
+            EXCLUDED_MEMBER_IDS,
+        )
 
         self.tick_loop = scheduler.build_loop(
-            self, self.pacer, HAUNTED_VC_ID, EXCLUDED_VC_IDS | {HAUNTED_VC_ID}
+            self, self.pacer, HAUNTED_VC_ID, EXCLUDED_VC_IDS | {HAUNTED_VC_ID}, EXCLUDED_MEMBER_IDS
         )
         await self.tree.sync()
 

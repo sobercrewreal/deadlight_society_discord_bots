@@ -99,3 +99,37 @@ def register_test_command(tree: app_commands.CommandTree, client: discord.Client
         tier = random.choice(list(TIERS.keys()))
         await interaction.response.send_message(f"Haunting you now (tier: {tier})...", ephemeral=True)
         await yank(client, member, haunted_vc_id, tier)
+
+
+def register_haunt_command(
+    tree: app_commands.CommandTree,
+    client: discord.Client,
+    pacer,
+    haunted_vc_id: int,
+    excluded_vc_ids: set[int],
+    excluded_member_ids: set[str],
+):
+    @tree.command(name="haunt", description="Force a random haunt on a random eligible member right now")
+    @app_commands.default_permissions(manage_guild=True)
+    async def haunt(interaction: discord.Interaction):
+        guild = interaction.guild
+        eligible_members = [
+            member
+            for vc in guild.voice_channels
+            if vc.id not in excluded_vc_ids
+            for member in vc.members
+            if not member.bot and str(member.id) not in excluded_member_ids
+        ]
+        if not eligible_members:
+            await interaction.response.send_message(
+                "Nobody eligible to haunt right now.", ephemeral=True
+            )
+            return
+
+        victim = random.choice(eligible_members)
+        week_count = await pacer.week_count(str(guild.id))
+        tier = meter_tier(week_count)
+        await interaction.response.send_message(
+            f"Haunting {victim.display_name} now (tier: {tier})...", ephemeral=True
+        )
+        await yank(client, victim, haunted_vc_id, tier)
